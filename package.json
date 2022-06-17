@@ -33,9 +33,9 @@
     "dist"
   ],
   "dependencies": {
+    "@dcl/rpc": "^1.0.1",
     "@well-known-components/interfaces": "^1.1.1",
     "mitt": "^3.0.0",
-    "mock-nats-client": "^0.2.0",
     "nats": "^2.7.1"
   }
 }
