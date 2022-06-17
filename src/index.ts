@@ -3,6 +3,11 @@ import { connect, NatsConnection } from "nats"
 import mitt from "mitt"
 import { natsComponent, INatsComponent, NatsEvents, Subscription } from "./types"
 
+/**
+ * Create a NATS component (https://nats.io/)
+ * Connect to a NATS node on start(), via the env variable "NATS_URL" or to "localhost:4222" by default
+ * @public
+ */
 export async function createNatsComponent(
   components: natsComponent.NeededComponents
 ): Promise<INatsComponent & IBaseComponent> {
