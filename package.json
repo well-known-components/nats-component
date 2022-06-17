@@ -22,8 +22,8 @@
   "homepage": "https://github.com/well-known-components/nats-component#readme",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.17.0",
-    "@types/jest": "^28.1.0",
-    "jest": "^28.1.0",
+    "@types/jest": "^28.1.2",
+    "jest": "^28.1.1",
     "ts-jest": "^28.0.4",
     "typescript": "^4.7.3"
   },
