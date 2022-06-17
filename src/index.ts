@@ -1,7 +1,64 @@
-/**
- * A function that does something
- * @public
- */
-export function example(){
-  return true
+import { IBaseComponent } from "@well-known-components/interfaces"
+import { connect, NatsConnection } from "nats"
+import mitt from "mitt"
+import { natsComponent, INatsComponent, NatsEvents, Subscription } from "./types"
+
+export async function createNatsComponent(
+  components: natsComponent.NeededComponents
+): Promise<INatsComponent & IBaseComponent> {
+  const { config, logs } = components
+  const logger = logs.getLogger("NATS")
+
+  // config
+  const natsUrl = (await config.getString("NATS_URL")) || "localhost:4222"
+  const natsConfig = { servers: `${natsUrl}` }
+  let natsConnection: NatsConnection
+
+  const events = mitt<NatsEvents>()
+
+  function publish(topic: string, message?: Uint8Array): void {
+    natsConnection.publish(topic, message)
+  }
+
+  function subscribe(topic: string): Subscription {
+    const sub = natsConnection.subscribe(topic)
+    sub.closed
+      .then(() => {
+        logger.info(`subscription closed for ${topic}`)
+      })
+      .catch((err) => {
+        logger.error(`subscription closed with an error ${err.message}`)
+      })
+    return {
+      unsubscribe: () => sub.unsubscribe(),
+      generator: sub,
+    }
+  }
+
+  async function start() {
+    try {
+      natsConnection = await connect(natsConfig)
+      events.emit("connected")
+      logger.info(`Connected to NATS: ${natsUrl}`)
+    } catch (error) {
+      logger.error(`An error occurred trying to connect to the NATS server: ${natsUrl}`)
+      throw error
+    }
+  }
+
+  async function stop() {
+    try {
+      await natsConnection.close()
+    } catch (error) {
+      logger.error(`An error occurred trying to close the connection to the NATS server: ${natsUrl}`)
+    }
+  }
+
+  return {
+    publish,
+    subscribe,
+    start,
+    stop,
+    events,
+  }
 }
