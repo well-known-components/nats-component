@@ -1,6 +1,6 @@
 import { IBaseComponent, IConfigComponent } from "@well-known-components/interfaces"
 const { connect } = require("mock-nats-client")
-import { natsComponent, INatsComponent, Subscription, NatsEvents } from "./types"
+import { natsComponent, INatsComponent, Subscription, NatsEvents, NatsMsg } from "./types"
 import mitt from "mitt"
 
 export async function createLocalNatsComponent(
@@ -13,12 +13,14 @@ export async function createLocalNatsComponent(
     message ? client.publish(topic, message) : client.publish(topic, [])
   }
 
-  function subscribe(topic: string): Subscription {
-    const sub = client.subscribe(topic)
-    return {
-      unsubscribe: () => client.unsubscribe(sub),
-      generator: sub,
+  function subscribe(topic: string, onMessage: (_: NatsMsg) => Promise<void>): Subscription {
+    const sid = client.subscribe(topic, (delivery: any, _replyTo: any, subject: string) => {
+      onMessage({ data: delivery, subject })
+    })
+    const unsubscribe = () => {
+      client.unsubscribe(sid)
     }
+    return { unsubscribe }
   }
 
   async function start() {

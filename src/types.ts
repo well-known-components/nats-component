@@ -14,7 +14,6 @@ export type NatsMsg = {
 }
 
 export type Subscription = {
-  generator: AsyncIterable<NatsMsg>
   unsubscribe: () => void
 }
 
@@ -24,7 +23,7 @@ export type NatsEvents = {
 
 export type INatsComponent = {
   publish(topic: string, message?: Uint8Array): void
-  subscribe(topic: string): Subscription
+  subscribe(topic: string, onMessage: (_: NatsMsg) => Promise<void>): Subscription
 
   start(): Promise<void>
   stop(): Promise<void>
