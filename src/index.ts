@@ -1,7 +1,7 @@
 import { IBaseComponent } from "@well-known-components/interfaces"
 import { connect, NatsConnection } from "nats"
 import mitt from "mitt"
-import { natsComponent, INatsComponent, NatsEvents, Subscription, NatsMsg } from "./types"
+import { natsComponent, INatsComponent, NatsEvents, Subscription } from "./types"
 
 /**
  * Create a NATS component (https://nats.io/)
@@ -25,14 +25,8 @@ export async function createNatsComponent(
     natsConnection.publish(topic, message)
   }
 
-  function subscribe(topic: string, onMessage: (_: NatsMsg) => Promise<void>): Subscription {
+  function subscribe(topic: string): Subscription {
     const sub = natsConnection.subscribe(topic)
-    ;(async () => {
-      for await (const message of sub) {
-        await onMessage({ data: message.data, subject: message.subject })
-      }
-    })().catch((err: any) => logger.error(`error processing subscription message; ${err.message}`))
-
     sub.closed
       .then(() => {
         logger.info(`subscription closed for ${topic}`)
@@ -42,6 +36,7 @@ export async function createNatsComponent(
       })
     return {
       unsubscribe: () => sub.unsubscribe(),
+      generator: sub,
     }
   }
 
