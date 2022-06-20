@@ -1,7 +1,14 @@
 import { IBaseComponent } from "@well-known-components/interfaces"
-import { connect, NatsConnection } from "nats"
+import { connect, NatsConnection, JSONCodec } from "nats"
+// import * as nats from "nats"
 import mitt from "mitt"
 import { natsComponent, INatsComponent, NatsEvents, Subscription } from "./types"
+
+/**
+ * Encode/Decode JSON objects into Uint8Array and viceversa
+ * @public
+ */
+export { JSONCodec }
 
 /**
  * Create a NATS component (https://nats.io/)

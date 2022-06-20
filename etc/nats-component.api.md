@@ -8,12 +8,15 @@ import { Emitter } from 'mitt';
 import { IBaseComponent } from '@well-known-components/interfaces';
 import { IConfigComponent } from '@well-known-components/interfaces';
 import { ILoggerComponent } from '@well-known-components/interfaces';
+import { JSONCodec } from 'nats';
 
 // Warning: (ae-forgotten-export) The symbol "natsComponent" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "INatsComponent" needs to be exported by the entry point index.d.ts
 //
 // @public
 export function createNatsComponent(components: natsComponent.NeededComponents): Promise<INatsComponent & IBaseComponent>;
+
+export { JSONCodec }
 
 // (No @packageDocumentation comment for this package)
 
