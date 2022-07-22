@@ -14,6 +14,9 @@ import { JSONCodec } from 'nats';
 // Warning: (ae-forgotten-export) The symbol "INatsComponent" needs to be exported by the entry point index.d.ts
 //
 // @public
+export function createLocalNatsComponent(components: natsComponent.NeededComponents): Promise<INatsComponent & IBaseComponent>;
+
+// @public
 export function createNatsComponent(components: natsComponent.NeededComponents): Promise<INatsComponent & IBaseComponent>;
 
 export { JSONCodec }
