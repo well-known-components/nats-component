@@ -4,6 +4,7 @@ import { connect, NatsConnection, JSONCodec } from "nats"
 import mitt from "mitt"
 import { natsComponent, INatsComponent, NatsEvents, Subscription } from "./types"
 
+export { createLocalNatsComponent } from './test-component'
 /**
  * Encode/Decode JSON objects into Uint8Array and viceversa
  * @public
@@ -23,7 +24,6 @@ export async function createNatsComponent(
 
   // config
   const natsUrl = (await config.getString("NATS_URL")) || "localhost:4222"
-  const natsConfig = { servers: `${natsUrl}` }
   let natsConnection: NatsConnection
 
   const events = mitt<NatsEvents>()
@@ -38,8 +38,8 @@ export async function createNatsComponent(
       .then(() => {
         logger.info(`subscription closed for ${topic}`)
       })
-      .catch((err) => {
-        logger.error(`subscription closed with an error ${err.message}`)
+      .catch((err: any) => {
+        logger.error(`subscription closed with an error ${err.toString()}`)
       })
     return {
       unsubscribe: () => sub.unsubscribe(),
@@ -49,7 +49,7 @@ export async function createNatsComponent(
 
   async function start() {
     try {
-      natsConnection = await connect(natsConfig)
+      natsConnection = await connect({ servers: `${natsUrl}` })
       events.emit("connected")
       logger.info(`Connected to NATS: ${natsUrl}`)
     } catch (error) {

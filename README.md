@@ -12,7 +12,7 @@ A port used to communicate with [NATS](https://nats.io/), the cloud native messa
 
 ```typescript
 // src/components.ts
-await createNatsComponent({ config, logs }
+await createNatsComponent({ config, logs })
 ```
 
 ### Start

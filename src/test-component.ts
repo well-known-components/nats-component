@@ -7,6 +7,10 @@ type PushableChannel = {
   push: (value: NatsMsg, resolve: (err?: any) => void) => void
 }
 
+/**
+ * Create a local NATS component, for testing purposes
+ * @public
+ */
 export async function createLocalNatsComponent(
   components: natsComponent.NeededComponents
 ): Promise<INatsComponent & IBaseComponent> {
