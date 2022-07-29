@@ -4,12 +4,14 @@ import { connect, NatsConnection, JSONCodec } from "nats"
 import mitt from "mitt"
 import { natsComponent, INatsComponent, NatsEvents, Subscription } from "./types"
 
-export { createLocalNatsComponent } from './test-component'
+export { createLocalNatsComponent } from "./test-component"
 /**
  * Encode/Decode JSON objects into Uint8Array and viceversa
  * @public
  */
 export { JSONCodec }
+
+export { Subscription }
 
 /**
  * Create a NATS component (https://nats.io/)
