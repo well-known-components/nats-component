@@ -38,7 +38,7 @@ export const test = createRunner<TestComponents>({
 
     const logs = createTestConsoleLogComponent()
 
-    const nats = await createLocalNatsComponent({ config, logs })
+    const nats = await createLocalNatsComponent()
 
     return {
       config,

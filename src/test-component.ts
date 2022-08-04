@@ -1,7 +1,7 @@
 import { IBaseComponent } from "@well-known-components/interfaces"
 import { pushableChannel } from "@dcl/rpc/dist/push-channel"
 import mitt from "mitt"
-import { natsComponent, INatsComponent, Subscription, NatsEvents, NatsMsg } from "./types"
+import { INatsComponent, Subscription, NatsEvents, NatsMsg } from "./types"
 
 type PushableChannel = {
   push: (value: NatsMsg, resolve: (err?: any) => void) => void
@@ -11,9 +11,7 @@ type PushableChannel = {
  * Create a local NATS component, for testing purposes
  * @public
  */
-export async function createLocalNatsComponent(
-  components: natsComponent.NeededComponents
-): Promise<INatsComponent & IBaseComponent> {
+export async function createLocalNatsComponent(): Promise<INatsComponent & IBaseComponent> {
   const channels = new Map<string, PushableChannel>()
   const events = mitt<NatsEvents>()
 

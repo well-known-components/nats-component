@@ -10,16 +10,27 @@ import { IConfigComponent } from '@well-known-components/interfaces';
 import { ILoggerComponent } from '@well-known-components/interfaces';
 import { JSONCodec } from 'nats';
 
-// Warning: (ae-forgotten-export) The symbol "natsComponent" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "INatsComponent" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function createLocalNatsComponent(components: natsComponent.NeededComponents): Promise<INatsComponent & IBaseComponent>;
+export function createLocalNatsComponent(): Promise<INatsComponent & IBaseComponent>;
 
+// Warning: (ae-forgotten-export) The symbol "natsComponent" needs to be exported by the entry point index.d.ts
+//
 // @public
 export function createNatsComponent(components: natsComponent.NeededComponents): Promise<INatsComponent & IBaseComponent>;
 
 export { JSONCodec }
+
+// @public
+export type Subscription = {
+    generator: AsyncIterable<NatsMsg>;
+    unsubscribe: () => void;
+};
+
+// Warnings were encountered during analysis:
+//
+// src/types.ts:21:3 - (ae-forgotten-export) The symbol "NatsMsg" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

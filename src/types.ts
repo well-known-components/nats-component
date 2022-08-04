@@ -13,6 +13,10 @@ export type NatsMsg = {
   data: Uint8Array
 }
 
+/**
+ * A Nats subscription
+ * @public
+ */
 export type Subscription = {
   generator: AsyncIterable<NatsMsg>
   unsubscribe: () => void
