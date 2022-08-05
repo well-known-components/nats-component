@@ -5,43 +5,46 @@ import mitt from "mitt"
 import { natsComponent, INatsComponent, NatsEvents, Subscription } from "./types"
 
 export { createLocalNatsComponent } from "./test-component"
-/**
- * Encode/Decode JSON objects into Uint8Array and viceversa
- * @public
- */
-export { JSONCodec }
+export { encodeJson, decodeJson } from './codecs'
 
 export { Subscription }
 
 /**
  * Create a NATS component (https://nats.io/)
- * Connect to a NATS node on start(), via the env variable "NATS_URL" or to "localhost:4222" by default
+ * Connect to a NATS node on start(), via the env variable "NATS_URL"
  * @public
  */
 export async function createNatsComponent(
   components: natsComponent.NeededComponents
 ): Promise<INatsComponent & IBaseComponent> {
   const { config, logs } = components
-  const logger = logs.getLogger("NATS")
-
   // config
-  const natsUrl = (await config.getString("NATS_URL")) || "localhost:4222"
-  let natsConnection: NatsConnection
+  const natsUrl = await config.requireString("NATS_URL")
+  const logger = logs.getLogger(`NATS(${natsUrl})`)
+
+  let natsConnection: NatsConnection | undefined
 
   const events = mitt<NatsEvents>()
 
   function publish(topic: string, message?: Uint8Array): void {
+    if (!natsConnection) {
+      throw new Error("NATS component was not started yet")
+    }
     natsConnection.publish(topic, message)
   }
 
   function subscribe(topic: string): Subscription {
+    if (!natsConnection) {
+      throw new Error("NATS component was not started yet")
+    }
+
     const sub = natsConnection.subscribe(topic)
     sub.closed
       .then(() => {
-        logger.info(`subscription closed for ${topic}`)
+        logger.info(`subscription closed for topic`, { topic })
       })
       .catch((err: any) => {
-        logger.error(`subscription closed with an error ${err.toString()}`)
+        logger.error(`subscription closed with an error`, err)
       })
     return {
       unsubscribe: () => sub.unsubscribe(),
@@ -62,9 +65,11 @@ export async function createNatsComponent(
 
   async function stop() {
     try {
-      await natsConnection.close()
-    } catch (error) {
-      logger.error(`An error occurred trying to close the connection to the NATS server: ${natsUrl}`)
+      if (natsConnection) {
+        await natsConnection.close()
+      }
+    } catch (error: any) {
+      logger.error(error)
     }
   }
 
