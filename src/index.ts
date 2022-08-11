@@ -5,7 +5,7 @@ import mitt from "mitt"
 import { natsComponent, INatsComponent, NatsEvents, Subscription } from "./types"
 
 export { createLocalNatsComponent } from "./test-component"
-export { encodeJson, decodeJson } from './codecs'
+export { encodeJson, decodeJson } from "./codecs"
 
 export { Subscription }
 
@@ -41,10 +41,10 @@ export async function createNatsComponent(
     const sub = natsConnection.subscribe(topic)
     sub.closed
       .then(() => {
-        logger.info(`subscription closed for topic`, { topic })
+        logger.debug(`Subscription closed for topic`, { topic })
       })
       .catch((err: any) => {
-        logger.error(`subscription closed with an error`, err)
+        logger.error(`Subscription closed with an error`, err)
       })
     return {
       unsubscribe: () => sub.unsubscribe(),
@@ -52,11 +52,33 @@ export async function createNatsComponent(
     }
   }
 
+  let didStop = false
+
+  async function printStatus(connection: NatsConnection) {
+    for await (const s of connection.status()) {
+      logger.info(`Status change`, s as any);
+    }
+  }
+
   async function start() {
     try {
       natsConnection = await connect({ servers: `${natsUrl}` })
+      printStatus(natsConnection).catch(logger.error)
+
+      natsConnection
+        .closed()
+        .then((err) => {
+          if (!didStop) {
+            logger.error(`NATS connection lost`)
+            if (err) {
+              logger.error(err)
+            }
+            // TODO: gracefully quit, this is an unrecoverable state
+            process.exit(1)
+          }
+        })
       events.emit("connected")
-      logger.info(`Connected to NATS: ${natsUrl}`)
+      logger.info(`Connected`, { server: natsConnection.getServer() });
     } catch (error) {
       logger.error(`An error occurred trying to connect to the NATS server: ${natsUrl}`)
       throw error
@@ -66,6 +88,7 @@ export async function createNatsComponent(
   async function stop() {
     try {
       if (natsConnection) {
+        didStop = true
         await natsConnection.close()
       }
     } catch (error: any) {
