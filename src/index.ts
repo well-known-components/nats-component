@@ -60,7 +60,7 @@ export async function createNatsComponent(
     }
   }
 
-  async function start(startOptions: IBaseComponent.ComponentStartOptions) {
+  async function start() {
     try {
       natsConnection = await connect({ servers: `${natsUrl}` })
       printStatus(natsConnection).catch(logger.error)
