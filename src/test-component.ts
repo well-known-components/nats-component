@@ -1,5 +1,5 @@
 import { IBaseComponent } from "@well-known-components/interfaces"
-import { pushableChannel } from "@dcl/rpc/dist/push-channel"
+import { pushableChannel } from "@well-known-components/pushable-channel"
 import mitt from "mitt"
 import { INatsComponent, Subscription, NatsEvents, NatsMsg } from "./types"
 
