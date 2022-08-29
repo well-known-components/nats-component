@@ -33,11 +33,13 @@ export async function setupTopics(globalContext: GlobalContext): Promise<void> {
   const { nats } = globalContext.components
   
   // Subscribe to the topic
-  const connectSubscription = nats.subscribe('peer.*.connect')
-  
-  // Process messages received for the topic
-  ;(async () => {
-    for await (const message of connectSubscription.generator) {
+  const connectSubscription = nats.subscribe('peer.*.connect', (err, message) => {
+      if (err) {
+        logger.error(err)
+        return 
+      }
+
+      // Process messages received for the topic
       try {
         // Extract information from the subject for the topic
         // 'peer.837.connect' => '837'
@@ -49,7 +51,7 @@ export async function setupTopics(globalContext: GlobalContext): Promise<void> {
         logger.error(`cannot process peer_connect message ${err.message}`)
       }
     }
-  })().catch((err: any) => logger.error(`error processing subscription message; ${err.message}`))
+  })
 }
 ```
 
@@ -78,14 +80,13 @@ Encode/Decode JSON messages using `JSONCodec`. Any other codec that encodes to `
 ### Example using JSONCodec
 
 ```typescript
-import { JSONCodec } from '@well-known-components/nats-component'
+import { encodeJson, decodeJson } from '@well-known-components/nats-component'
 
-const jsonCodec = JSONCodec()
 const jsonMessage = { id: 1 }
 
 // Encode
-const encodedMessage = jsonCodec.encode(jsonMessage)
+const encodedMessage = encodeJson(jsonMessage)
 
 // Decode
-const decodedMessage = jsonCodec.decode(encodedMessage)
+const decodedMessage = decodeJson(encodedMessage)
 ```
