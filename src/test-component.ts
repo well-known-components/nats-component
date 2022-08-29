@@ -1,22 +1,17 @@
 import { IBaseComponent } from "@well-known-components/interfaces"
-import { pushableChannel } from "@well-known-components/pushable-channel"
 import mitt from "mitt"
-import { INatsComponent, Subscription, NatsEvents, NatsMsg } from "./types"
-
-type PushableChannel = {
-  push: (value: NatsMsg, resolve: (err?: any) => void) => void
-}
+import { INatsComponent, Subscription, NatsEvents, SubscriptionCallback } from "./types"
 
 /**
  * Create a local NATS component, for testing purposes
  * @public
  */
 export async function createLocalNatsComponent(): Promise<INatsComponent & IBaseComponent> {
-  const channels = new Map<string, PushableChannel>()
+  const callbacks = new Map<string, Set<SubscriptionCallback>>()
   const events = mitt<NatsEvents>()
 
   function publish(topic: string, data: Uint8Array): void {
-    channels.forEach((ch, pattern) => {
+    callbacks.forEach((cbs, pattern) => {
       const sPattern = pattern.split(".")
       const sTopic = topic.split(".")
 
@@ -30,18 +25,20 @@ export async function createLocalNatsComponent(): Promise<INatsComponent & IBase
         }
       }
 
-      ch.push({ subject: topic, data }, console.log)
+      for (const cb of cbs) {
+        cb(null, { subject: topic, data })
+      }
     })
   }
 
-  function subscribe(pattern: string): Subscription {
-    const channel = pushableChannel<NatsMsg>(function deferCloseChannel() {
-      channels.delete(pattern)
-    })
-    channels.set(pattern, channel)
+  function subscribe(pattern: string, cb: SubscriptionCallback): Subscription {
+    const cbs = callbacks.get(pattern) || new Set<SubscriptionCallback>()
+    cbs.add(cb)
+    callbacks.set(pattern, cbs)
     return {
-      unsubscribe: () => channel.close(),
-      generator: channel.iterable,
+      unsubscribe: () => {
+        cbs.delete(cb)
+      },
     }
   }
 

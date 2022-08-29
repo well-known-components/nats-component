@@ -1,8 +1,7 @@
 import { IBaseComponent } from "@well-known-components/interfaces"
-import { connect, NatsConnection, JSONCodec } from "nats"
-// import * as nats from "nats"
+import { connect, Msg, NatsConnection, NatsError } from "nats"
 import mitt from "mitt"
-import { natsComponent, INatsComponent, NatsEvents, Subscription } from "./types"
+import { natsComponent, INatsComponent, NatsEvents, Subscription, SubscriptionCallback } from "./types"
 
 export { createLocalNatsComponent } from "./test-component"
 export { encodeJson, decodeJson } from "./codecs"
@@ -33,12 +32,17 @@ export async function createNatsComponent(
     natsConnection.publish(topic, message)
   }
 
-  function subscribe(topic: string): Subscription {
+  function subscribe(topic: string, cb: SubscriptionCallback): Subscription {
     if (!natsConnection) {
       throw new Error("NATS component was not started yet")
     }
 
-    const sub = natsConnection.subscribe(topic)
+    const sub = natsConnection.subscribe(topic, {
+      callback: (err: NatsError | null, msg: Msg) => {
+        cb(err, msg)
+      },
+    })
+
     sub.closed
       .then(() => {
         logger.debug(`Subscription closed for topic`, { topic })
@@ -46,17 +50,15 @@ export async function createNatsComponent(
       .catch((err: any) => {
         logger.error(`Subscription closed with an error`, err)
       })
-    return {
-      unsubscribe: () => sub.unsubscribe(),
-      generator: sub,
-    }
+
+    return sub
   }
 
   let didStop = false
 
   async function printStatus(connection: NatsConnection) {
     for await (const s of connection.status()) {
-      logger.info(`Status change`, s as any);
+      logger.info(`Status change`, s as any)
     }
   }
 
@@ -65,20 +67,18 @@ export async function createNatsComponent(
       natsConnection = await connect({ servers: `${natsUrl}` })
       printStatus(natsConnection).catch(logger.error)
 
-      natsConnection
-        .closed()
-        .then((err) => {
-          if (!didStop) {
-            logger.error(`NATS connection lost`)
-            if (err) {
-              logger.error(err)
-            }
-            // TODO: gracefully quit, this is an unrecoverable state
-            process.exit(1)
+      natsConnection.closed().then((err) => {
+        if (!didStop) {
+          logger.error(`NATS connection lost`)
+          if (err) {
+            logger.error(err)
           }
-        })
+          // TODO: gracefully quit, this is an unrecoverable state
+          process.exit(1)
+        }
+      })
       events.emit("connected")
-      logger.info(`Connected`, { server: natsConnection.getServer() });
+      logger.info(`Connected`, { server: natsConnection.getServer() })
     } catch (error) {
       logger.error(`An error occurred trying to connect to the NATS server: ${natsUrl}`)
       throw error
