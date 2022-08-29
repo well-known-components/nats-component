@@ -36,7 +36,9 @@ export async function createLocalNatsComponent(): Promise<INatsComponent & IBase
     cbs.add(cb)
     callbacks.set(pattern, cbs)
     return {
-      unsubscribe: () => false,
+      unsubscribe: () => {
+        cbs.delete(cb)
+      },
     }
   }
 
