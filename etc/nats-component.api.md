@@ -27,13 +27,8 @@ export function encodeJson<T = unknown>(d: T): Uint8Array;
 
 // @public
 export type Subscription = {
-    generator: AsyncIterable<NatsMsg>;
     unsubscribe: () => void;
 };
-
-// Warnings were encountered during analysis:
-//
-// src/types.ts:21:3 - (ae-forgotten-export) The symbol "NatsMsg" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

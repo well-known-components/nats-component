@@ -18,9 +18,14 @@ export type NatsMsg = {
  * @public
  */
 export type Subscription = {
-  generator: AsyncIterable<NatsMsg>
   unsubscribe: () => void
 }
+
+/**
+ * Subscription Callback
+ * @public
+ */
+export type SubscriptionCallback = (error: Error | null, msg: NatsMsg) => void
 
 export type NatsEvents = {
   connected: void
@@ -28,7 +33,7 @@ export type NatsEvents = {
 
 export type INatsComponent = {
   publish(topic: string, message?: Uint8Array): void
-  subscribe(topic: string): Subscription
+  subscribe(topic: string, cb: SubscriptionCallback): Subscription
 
   start(): Promise<void>
   stop(): Promise<void>
